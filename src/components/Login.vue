@@ -1,15 +1,83 @@
 <template>
     <div class="login-container">
         <div class="login-box">
+            <!-- 头像区域 -->
             <div class="avatar-box">
                 <img src="../assets/logo.png" alt="" />
             </div>
+            <!-- 登录表单区域 -->
+            <el-form
+                ref="loginFormRef"
+                :model="loginForm"
+                :rules="loginFormRules"
+                class="login-form"
+            >
+                <el-form-item prop="username">
+                    <el-input
+                        v-model="loginForm.username"
+                        prefix-icon="iconfont icon-user"
+                    ></el-input>
+                </el-form-item>
+                <el-form-item prop="password">
+                    <el-input
+                        v-model="loginForm.password"
+                        type="password"
+                        prefix-icon="iconfont icon-3702mima"
+                    ></el-input>
+                </el-form-item>
+                <el-form-item class="btns">
+                    <el-button type="primary" @click="login">登录</el-button>
+                    <el-button type="info" @click="resetLoginForm">重置</el-button>
+                </el-form-item>
+            </el-form>
         </div>
     </div>
 </template>
 
 <script>
-export default {};
+export default {
+    data() {
+        return {
+            loginForm: {
+                username: 'admin',
+                password: '123456',
+            },
+            //登录表单校验规则
+            loginFormRules: {
+                username: [
+                    { required: true, message: '请输入登录名称', trigger: 'blur' },
+                    { min: 3, max: 6, message: '长度在 3 到 6 个字符', trigger: 'blur' },
+                ],
+                password: [
+                    { required: true, message: '请输入登录密码', trigger: 'blur' },
+                    {
+                        min: 3,
+                        max: 10,
+                        message: '长度在 3 到 10 个字符',
+                        trigger: 'blur',
+                    },
+                ],
+            },
+        };
+    },
+    methods: {
+        login() {
+            this.$refs.loginFormRef.validate(async valid => {
+                console.log(valid);
+                if (!valid) {
+                    return;
+                }
+                let data = await this.$http.post('login', this.loginForm);
+                console.log(data);
+            });
+        },
+        //重置登录表单数据
+        resetLoginForm() {
+            console.log(this);
+            this.$refs.loginFormRef.resetFields();
+        },
+    },
+};
 </script>
 
 <style lang="less" scoped>
@@ -46,5 +114,15 @@ export default {};
             background-color: #eee;
         }
     }
+}
+.login-form {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+.btns {
+    text-align: center;
 }
 </style>
