@@ -78,7 +78,6 @@ export default {
         },
         async getMenuList() {
             const { data: res } = await this.$http.get('menus');
-            console.log(res);
             this.menuList = res.data;
         },
         toggleCollapse() {
