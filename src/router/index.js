@@ -17,6 +17,7 @@ const routes = [
         children: [
             { path: '/welcome', component: Welcome },
             { path: '/users', component: () => import('../components/users/Users.vue') },
+            { path: '/rights', component: () => import('../components/power/Rights.vue') },
         ],
     },
 ];
