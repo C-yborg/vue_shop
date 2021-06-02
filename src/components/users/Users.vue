@@ -48,10 +48,20 @@
                 <el-table-column label="操作" width="180px">
                     <template v-slot="scope">
                         <el-tooltip content="编辑角色" placement="top" :enterable="false">
-                            <el-button type="primary" icon="el-icon-edit" size="mini"></el-button>
+                            <el-button
+                                type="primary"
+                                icon="el-icon-edit"
+                                size="mini"
+                                @click="editUser(scope.row.id)"
+                            ></el-button>
                         </el-tooltip>
                         <el-tooltip content="删除角色" placement="top" :enterable="false">
-                            <el-button type="danger" icon="el-icon-delete" size="mini"></el-button>
+                            <el-button
+                                type="danger"
+                                icon="el-icon-delete"
+                                size="mini"
+                                @click="removeUserById(scope.row.id)"
+                            ></el-button>
                         </el-tooltip>
                         <el-tooltip content="分配角色" placement="top" :enterable="false">
                             <el-button type="info" icon="el-icon-setting" size="mini"></el-button>
@@ -84,14 +94,33 @@
                 <el-form-item label="邮箱：" prop="email">
                     <el-input v-model="addForm.email"></el-input>
                 </el-form-item>
-                <el-form-item label="手机：" prop="phone">
-                    <el-input v-model="addForm.phone"></el-input>
+                <el-form-item label="手机：" prop="mobile">
+                    <el-input v-model="addForm.mobile"></el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click="addFormVisible = false">取 消</el-button>
                 <el-button type="primary" @click="addUser">确 定</el-button>
             </div>
+        </el-dialog>
+
+        <!-- 编辑用户弹窗 -->
+        <el-dialog title="编辑用户" :visible.sync="editFormVisible" @close="editDialogClosed">
+            <el-form ref="editFormRef" :model="editForm" :rules="addFormRules" label-width="80px">
+                <el-form-item label="用户名：" prop="username">
+                    <el-input v-model="editForm.username" disabled></el-input>
+                </el-form-item>
+                <el-form-item label="手机：" prop="mobile">
+                    <el-input v-model="editForm.mobile"></el-input>
+                </el-form-item>
+                <el-form-item label="邮箱：" prop="email">
+                    <el-input v-model="editForm.email"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button @click="editFormVisible = false">取 消</el-button>
+                    <el-button type="primary" @click="editUserInfo">确 定</el-button>
+                </el-form-item>
+            </el-form>
         </el-dialog>
     </div>
 </template>
@@ -119,7 +148,7 @@ export default {
             if (mobileReg.test(value)) {
                 return callback();
             }
-            callback(new Error('请输入合法的邮箱手机号'));
+            callback(new Error('请输入合法的手机号'));
         };
         return {
             queryInfo: {
@@ -131,10 +160,12 @@ export default {
             total: 0,
             //控制添加用户弹窗的开关
             addFormVisible: false,
+            //编辑用户弹窗开关
+            editFormVisible: false,
             addForm: {
                 username: '',
                 password: '',
-                phone: '',
+                mobile: '',
                 email: '',
             },
             addFormRules: {
@@ -147,8 +178,9 @@ export default {
                     { min: 6, max: 15, message: '密码的长度在3~10个字符之间', trigger: 'blur' },
                 ],
                 email: [{ validator: checkEmail, trigger: 'blur' }],
-                phone: [{ validator: checkMobile, trigger: 'blur' }],
+                mobile: [{ validator: checkMobile, trigger: 'blur' }],
             },
+            editForm: {},
         };
     },
     created() {
@@ -201,6 +233,58 @@ export default {
                 this.addFormVisible = false;
                 this.getUserList();
             });
+        },
+        async editUser(id) {
+            const { data: res } = await this.$http.get('users/' + id);
+            if (res.meta.status !== 200) {
+                return this.$message.error('查询用户信息失败！');
+            }
+            this.editForm = res.data;
+            this.editFormVisible = true;
+        },
+        //editDialog关闭时的回调
+        editDialogClosed() {
+            //清楚表单校验结果
+            this.$refs.editFormRef.clearValidate();
+        },
+        //修改用户信息并提交
+        editUserInfo() {
+            this.$refs.editFormRef.validate(async valid => {
+                console.log(valid);
+                if (!valid) {
+                    return;
+                }
+                const { data: res } = await this.$http.put('users/' + this.editForm.id, {
+                    email: this.editForm.email,
+                    mobile: this.editForm.mobile,
+                });
+                if (res.meta.status !== 200) {
+                    return this.$message.error('修改用户信息失败！');
+                }
+                this.editFormVisible = false; //关闭弹窗
+                this.getUserList(); //重新获取，刷新列表数据
+                this.$message.success('修改用户信息成功！');
+            });
+        },
+        //根据id删除角色
+        removeUserById(id) {
+            this.$confirm('是否确定删除该用户?', '提示', {
+                confirmButtonText: '确定',
+                cancelButtonText: '取消',
+                type: 'warning',
+                center: true,
+            })
+                .then(async () => {
+                    const { data: res } = await this.$http.delete('users/' + id);
+                    if (res.meta.status !== 200) {
+                        return this.$message.error('删除用户失败！');
+                    }
+                    this.$message.success('删除用户成功！');
+                    this.getUserList();
+                })
+                .catch(err => {
+                    this.$message.info('已取消删除');
+                });
         },
     },
 };
