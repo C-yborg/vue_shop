@@ -16,13 +16,44 @@
             <el-table :data="roleList" border stripe>
                 <el-table-column type="expand">
                     <template slot-scope="scope">
-                        <el-row v-for="item1 in scope.row.children" :key="item1.id">
+                        <el-row
+                            :class="['bdbottom', i1 == 0 ? 'bdtop' : '', 'vcenter']"
+                            v-for="(item1, i1) in scope.row.children"
+                            :key="item1.id"
+                        >
+                            <!-- 渲染一级权限 -->
                             <el-col :span="5">
-                                <el-tag>{{ item1.authName }}</el-tag>
+                                <el-tag closable>{{ item1.authName }}</el-tag>
+                                <i class="el-icon-caret-right"></i>
                             </el-col>
-                            <el-col :span="19">45456</el-col>
+
+                            <!-- 渲染二级权限 -->
+                            <el-col :span="19">
+                                <el-row
+                                    :class="[i2 === 0 ? '' : 'bdtop', 'vcenter']"
+                                    v-for="(item2, i2) in item1.children"
+                                    :key="item2.id"
+                                >
+                                    <!-- 二级权限 -->
+                                    <el-col :span="6">
+                                        <el-tag type="success" closable>{{
+                                            item2.authName
+                                        }}</el-tag>
+                                        <i class="el-icon-caret-right"></i>
+                                    </el-col>
+                                    <!-- 三级权限 -->
+                                    <el-col :span="18">
+                                        <el-tag
+                                            v-for="item3 in item2.children"
+                                            :key="item3.id"
+                                            type="warning"
+                                            closable
+                                            >{{ item3.authName }}</el-tag
+                                        >
+                                    </el-col>
+                                </el-row>
+                            </el-col>
                         </el-row>
-                        <pre>{{ scope.row }}</pre>
                     </template>
                 </el-table-column>
                 <el-table-column type="index" label="#"></el-table-column>
@@ -65,4 +96,19 @@ export default {
 };
 </script>
 
-<style lang="less" scoped></style>
+<style lang="less" scoped>
+.el-tag {
+    margin: 7px;
+}
+.bdtop {
+    border-top: 1px solid #eee;
+}
+
+.bdbottom {
+    border-bottom: 1px solid #eee;
+}
+.vcenter {
+    display: flex;
+    align-items: center;
+}
+</style>
