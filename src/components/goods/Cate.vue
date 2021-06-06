@@ -7,6 +7,24 @@
                     <el-button type="primary">添加分类</el-button>
                 </el-col>
             </el-row>
+            <tree-table
+                :data="cateList"
+                :columns="columns"
+                :selection-type="false"
+                :expand-type="false"
+                show-index
+                index-text="#"
+                border
+            >
+                <template slot="isok" slot-scope="scope">
+                    <i
+                        v-if="scope.row.cat_deleted === false"
+                        class="el-icon-success"
+                        style="color:lightgreen;"
+                    ></i>
+                    <i v-else class="el-icon-error" style="color:red;"></i>
+                </template>
+            </tree-table>
         </el-card>
     </div>
 </template>
@@ -23,6 +41,17 @@ export default {
                 pagesize: 5,
             },
             cateList: [], //商品分类列表
+            columns: [
+                {
+                    label: '分类名称',
+                    prop: 'cat_name',
+                },
+                {
+                    label: '是否有效',
+                    type: 'template',
+                    template: 'isok',
+                },
+            ],
         };
     },
     created() {
@@ -35,6 +64,7 @@ export default {
             if (res.meta.status !== 200) {
                 return this.$message.error('获取分类列表失败！');
             }
+            this.cateList = res.data.result;
         },
     },
 };
