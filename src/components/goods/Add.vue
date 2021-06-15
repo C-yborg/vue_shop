@@ -103,6 +103,7 @@
 
 <script>
 import BreadCrumb from '../BreadCrumb.vue';
+import _ from 'lodash';
 export default {
     components: { BreadCrumb },
     data() {
@@ -116,13 +117,16 @@ export default {
                 goods_cat: [],
                 pics: [], //商品图片数据列表
                 goods_introduce: '',
+                attrs: [],
             },
             addFormRules: {
                 goods_name: [{ required: true, message: '请输入商品名称', tirrger: blur }],
                 goods_price: [{ required: true, message: '请输入商品价格', tirrger: blur }],
                 goods_number: [{ required: true, message: '请输入商品数量', tirrger: blur }],
                 goods_weight: [{ required: true, message: '请输入商品重量', tirrger: blur }],
-                goods_cat: [{ required: true, message: '请选择商品分类', tirrger: blur }],
+                goods_cat: [
+                    { type: 'array', required: true, message: '请选择商品分类', tirrger: blur },
+                ],
             },
             //商品分类列表
             cateList: [],
@@ -160,6 +164,7 @@ export default {
                 this.addForm.goods_cat = [];
                 return;
             }
+            // this.addForm.goods_cat = this.addForm.goods_cat.join(',');
         },
         //tabs before-leave
         beforeLeaveTab(activeName, oldActiveName) {
@@ -221,12 +226,35 @@ export default {
             console.log(this.addForm);
         },
 
-        add() {
+        async add() {
             this.$refs.addFormRef.validate(valid => {
                 if (!valid) {
                     return this.$message.error('请输入必要的表单数据');
                 }
             });
+            //深拷贝
+            const form = _.cloneDeep(this.addForm);
+            form.goods_cat = form.goods_cat.join(',');
+            //处理动态参数
+            this.manyTableData.forEach(item => {
+                const newInfo = { attr_id: item.attr_id, attr_value: item.attr_vals.join(' ') };
+                this.addForm.attrs.push(newInfo);
+            });
+            //处理静态属性
+            this.onlyTableData.forEach(item => {
+                const newInfo = { attr_id: item.attr_id, attr_value: item.attr_vals };
+                this.addForm.attrs.push(newInfo);
+            });
+            form.attrs = this.addForm.attrs;
+            console.log(form);
+
+            //添加商品
+            const { data: res } = await this.$http.post('goods', form);
+            if (res.meta.status !== 201) {
+                return this.$message.error('添加商品失败！');
+            }
+            this.$message.success('添加商品成功！');
+            this.$router.push('/goods');
         },
     },
     computed: {
