@@ -9,9 +9,15 @@ import './assets/fonts/iconfont.css';
 import TreeTable from 'vue-table-with-tree-grid';
 // 导入面包屑组件
 import BreadCrumb from './components/BreadCrumb.vue';
+import VueQuillEditor from 'vue-quill-editor';
+
+import 'quill/dist/quill.core.css'; // import styles
+import 'quill/dist/quill.snow.css'; // for snow theme
+import 'quill/dist/quill.bubble.css'; // for bubble theme
 //全局注册面包屑组件
 Vue.component('bread-crumb', BreadCrumb);
 Vue.component('tree-table', TreeTable);
+Vue.use(VueQuillEditor /* { default global options } */);
 import axios from 'axios';
 axios.defaults.baseURL = 'http://127.0.0.1:8888/api/private/v1/';
 axios.interceptors.request.use(config => {

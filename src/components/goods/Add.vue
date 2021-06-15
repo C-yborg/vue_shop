@@ -80,6 +80,7 @@
                             :on-remove="handleRemove"
                             list-type="picture"
                             :headers="headerObj"
+                            :on-success="handleSuccess"
                         >
                             <el-button size="small" type="primary">点击上传</el-button>
                             <div slot="tip" class="el-upload__tip">
@@ -87,10 +88,16 @@
                             </div>
                         </el-upload>
                     </el-tab-pane>
-                    <el-tab-pane label="商品内容" name="4">定时任务补偿</el-tab-pane>
+                    <el-tab-pane label="商品内容" name="4">
+                        <quill-editor ref="myQuillEditor" v-model="addForm.goods_introduce" />
+                        <el-button type="primary" class="btnAdd" @click="add">添加商品</el-button>
+                    </el-tab-pane>
                 </el-tabs>
             </el-form>
         </el-card>
+        <el-dialog title="图片预览" :visible.sync="previewVisible" width="50%">
+            <img :src="previewUrl" alt="" class="preview-img" />
+        </el-dialog>
     </div>
 </template>
 
@@ -107,6 +114,8 @@ export default {
                 goods_number: '',
                 goods_weight: '',
                 goods_cat: [],
+                pics: [], //商品图片数据列表
+                goods_introduce: '',
             },
             addFormRules: {
                 goods_name: [{ required: true, message: '请输入商品名称', tirrger: blur }],
@@ -129,6 +138,8 @@ export default {
             headerObj: {
                 Authorization: window.sessionStorage.getItem('token'),
             },
+            previewVisible: false,
+            previewUrl: '',
         };
     },
     created() {
@@ -184,8 +195,39 @@ export default {
                 console.log(this.onlyTableData);
             }
         },
-        handlePreview() {},
-        handleRemove() {},
+        //点击图片预览
+        handlePreview(file) {
+            this.previewUrl = file.response.data.url;
+            this.previewVisible = true;
+        },
+        //移除图片
+        handleRemove(file) {
+            console.log(file);
+            //1.获取图片的临时路径
+            const filePath = file.response.data.tmp_path;
+            //2.在pic数组种 找到这个路径对应的索引
+            const i = this.addForm.pics.findIndex(x => {
+                x.pic === filePath;
+            });
+            //3.把该索引对应的值从数组中溢出
+            this.addForm.pics.splice(i, 1);
+            console.log(this.addForm);
+        },
+        //图片上传成功的操作
+        handleSuccess(response) {
+            console.log(response);
+            const picInfo = { pic: response.data.tmp_path };
+            this.addForm.pics.push(picInfo);
+            console.log(this.addForm);
+        },
+
+        add() {
+            this.$refs.addFormRef.validate(valid => {
+                if (!valid) {
+                    return this.$message.error('请输入必要的表单数据');
+                }
+            });
+        },
     },
     computed: {
         cateId() {
@@ -210,5 +252,11 @@ export default {
 }
 .el-checkbox {
     margin: 0 10px 0 0;
+}
+.preview-img {
+    width: 100%;
+}
+.btnAdd {
+    margin-top: 15px;
 }
 </style>
